@@ -6,6 +6,6 @@ Requirments:
 Steps to run parser. (run all commands from root directory)
 1. run `sh ./src/setup/creatPaths.sh`
 2. run `sh ./src/setup/downloadStanfordDataset.sh`
-3. python3 -m src.parser
+3. run `python3 -m src.parser`
 
 
