@@ -108,7 +108,7 @@ def getExcludedImages():
 
 def checkIfInvalidData(imgName:str, invalidArray: list) -> bool:
     # uses the invalid array to find if the image string is inside if it is return true otherwise return false
-    for i in range(list(invalidArray)):
+    for i in range(len(invalidArray)):
         if imgName == invalidArray[i]:
             return True
     return False
