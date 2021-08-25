@@ -9,6 +9,7 @@ STANFROD_ANNOTATIONS = os.path.join(STANFORD_DS_DIR,'Annotation')
 STANFROD_IMAGES= os.path.join(STANFORD_DS_DIR,'Images')
 OUTPUT_TRAIN = os.path.join(DATA_PATH,"train")
 OUTPUT_TEST = os.path.join(DATA_PATH,"test")
+BAD_DATA_LIST = "src/removing.txt"
 
 print(STANFROD_IMAGES)
 # creats an easy way to contain the sample values
@@ -27,11 +28,12 @@ def convertImageNametoHexHash(name:str) -> str:
     print(hexhHash[2:])
     return hexhHash[2:]
 
-def getAllImages(dir:str) -> list:
+def getAllImages(dir:str,divideForTexting:bool) -> list:
     trainSamples = [] # training
     testSamples = [] # test validation
     pathsToCopyTest = []
     pathsToCopyTrain = []
+    excludedImages = getExcludedImages()
     listOfImgDirs = os.listdir(dir)
     for directory in listOfImgDirs:
         value = directory.lower()[10:]
@@ -40,14 +42,17 @@ def getAllImages(dir:str) -> list:
         for j in range(len(imagesNames)):#imageName in imagesNames:
              # gets the hex hash number for the image name
             s = Sample(imagesNames[j][:-4],value)
-            if j < 10:
+            if ((j < 10) and divideForTexting==True):
                 # use these for testing
                 pathsToCopyTest.append(os.path.join(imageDirectories,imagesNames[j]))
                 testSamples.append(s)
             else:
                 # use for training
-                pathsToCopyTrain.append(os.path.join(imageDirectories,imagesNames[j]))
-                trainSamples.append(s)
+                if (checkIfInvalidData(s.fileName,excludedImages) == True):
+                    print("Excluding: " + s.fileName)
+                else:
+                    pathsToCopyTrain.append(os.path.join(imageDirectories,imagesNames[j]))
+                    trainSamples.append(s)
     # randomize the samples
     random.shuffle(trainSamples)
     random.shuffle(testSamples)
@@ -89,10 +94,28 @@ def copyToTargetDir(paths:list, output):
     for i in tqdm(range(len(paths))):
         os.system("cp " + paths[i] + " " + output)
 
+def getExcludedImages():
+    # open the removing file
+    file = open(BAD_DATA_LIST)
+    fileLines = file.read()
+    excludedList = []
+    print(fileLines)
+    excludedList = fileLines.split(",")
+    # get all the names of images that should be excluded
+    print(excludedList)
+    # return an array
+    return excludedList
+
+def checkIfInvalidData(imgName:str, invalidArray: list) -> bool:
+    # uses the invalid array to find if the image string is inside if it is return true otherwise return false
+    for i in range(list(invalidArray)):
+        if imgName == invalidArray[i]:
+            return True
+    return False
 
 def main():
     # generates the dataset
-    trainSmaples,testSamples = getAllImages(STANFROD_IMAGES)
+    trainSmaples,testSamples = getAllImages(STANFROD_IMAGES,divideForTexting=False)
     generateCSV(trainingS=trainSmaples,testingS=testSamples) 
 
 main()
